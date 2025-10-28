@@ -1,0 +1,663 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Electrical Circuits Interactive Quiz (with Q19–Q25 & Charts)</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:#0b1220; color:#e6ecff; margin:0; padding:0;}
+  header{padding:20px 16px; background:#111a33; position:sticky; top:0; z-index:10; box-shadow:0 2px 6px rgba(0,0,0,.3);}
+  h1{margin:0; font-size:20px;}
+  main{max-width:980px; margin:24px auto; padding:0 16px 48px;}
+  .card{background:#121a2e; border:1px solid #22305a; border-radius:14px; padding:18px; margin:14px 0; box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .qtext{font-weight:600; margin-bottom:12px; line-height:1.45;}
+  .choice{display:block; margin:8px 0; padding:10px 12px; border:1px solid #283867; border-radius:10px; cursor:pointer; background:#0f1730; transition:.2s}
+  .choice:hover{transform:translateY(-1px); box-shadow:0 3px 10px rgba(0,0,0,.25);}
+  .choice input{margin-right:10px;}
+  .actions{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 0;}
+  button{background:#3a66ff; color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700;}
+  button.secondary{background:#243a7a;}
+  .correct{border-color:#27ae60 !important; background:#0f2e1f;}
+  .incorrect{border-color:#e74c3c !important; background:#2b0f12;}
+  .pill{display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #334a86; color:#a9c1ff;}
+  .result{font-size:18px; font-weight:800;}
+  footer{text-align:center; color:#9fb0ff; padding:20px;}
+  details>summary{cursor:pointer; margin:8px 0; color:#a9c1ff;}
+  img.ref{width:100%; height:auto; border:1px solid #22305a; border-radius:10px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Electrical Circuits Interactive Quiz</h1>
+  <div class="pill" id="meta"></div>
+</header>
+<main>
+  <div class="card">
+    <p>Answers are randomized on each load. Click <b>Submit</b> to see your score and per‑question feedback. Use <b>Try Again</b> to reshuffle.</p>
+    <div class="actions">
+      <button id="submitBtn">Submit</button>
+      <button id="retryBtn" class="secondary">Try Again (Shuffle)</button>
+      <label class="pill" style="padding:6px 10px;"><input type="checkbox" id="shuffleQ"> Shuffle questions</label>
+      <label class="pill" style="padding:6px 10px;"><input type="checkbox" id="instant"> Instant feedback</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 8px 0;">Reference Charts </h2>
+    
+    <figure style="margin:0 0 12px 0;">
+      <img class="ref" src="Screenshot_21-10-2025_15332_.jpeg" alt="NEC Table 5 – RHH/RHW Conductor Areas"/>
+      <figcaption style="font-size:12px; color:#a9c1ff; margin-top:4px;">NEC Table 5 – RHH/RHW Conductor Areas (use the <b>in²</b> column)</figcaption>
+    </figure>
+    <figure style="margin:0;">
+      <img class="ref" src="Screenshot_21-10-2025_154022_shop.chapmanelectric.com.jpeg" alt="Max number of RHH conductors by conduit size"/>
+      <figcaption style="font-size:12px; color:#a9c1ff; margin-top:4px;">Maximum # of RHH conductors by conduit size (use 3/4″, 1‑1/4″, 1‑1/2″ columns)</figcaption>
+    </figure>
+  </div>
+
+  <div id="quiz"></div>
+  <div class="card">
+    <div id="summary" class="result">Score: —</div>
+  </div>
+</main>
+<footer>© Practice tool</footer>
+<script>
+const data = [
+  {
+    "q": "A ________ circuit is one in which there is only one path for current to travel.",
+    "choices": [
+      "series",
+      "parallel",
+      "open",
+      "short"
+    ],
+    "answer": "series"
+  },
+  {
+    "q": "In a ________ circuit, the voltage available to each branch is equal to the source voltage.",
+    "choices": [
+      "parallel",
+      "series",
+      "open",
+      "short"
+    ],
+    "answer": "parallel"
+  },
+  {
+    "q": "Current in a ________ circuit is divided among the branches of the circuit.",
+    "choices": [
+      "parallel",
+      "series",
+      "open",
+      "short"
+    ],
+    "answer": "parallel"
+  },
+  {
+    "q": "If a wire has continuity, which of the following is true?",
+    "choices": [
+      "it has a complete path for current to flow",
+      "it is open",
+      "it has infinite resistance",
+      "it is shorted to ground"
+    ],
+    "answer": "it has a complete path for current to flow"
+  },
+  {
+    "q": "The Ohm’s Law formula for calculating voltage is",
+    "choices": [
+      "E = I × R",
+      "I = E ÷ R",
+      "R = E × I",
+      "P = I ÷ E"
+    ],
+    "answer": "E = I × R"
+  },
+  {
+    "q": "Which of the following is an application of a combination circuit?",
+    "choices": [
+      "building lighting circuits with multiple switches",
+      "single battery and lamp in series only",
+      "a single resistor to ground",
+      "a standalone motor"
+    ],
+    "answer": "building lighting circuits with multiple switches"
+  },
+  {
+    "q": "A variable resistor is different from a fixed resistor because ________.",
+    "choices": [
+      "its resistance can be adjusted",
+      "it has zero resistance",
+      "it only works with AC",
+      "it is polarized"
+    ],
+    "answer": "its resistance can be adjusted"
+  },
+  {
+    "q": "Which of the following is an application of a variable resistor?",
+    "choices": [
+      "light dimmer or audio volume control",
+      "circuit breaker trip",
+      "diode rectifier",
+      "transformer core"
+    ],
+    "answer": "light dimmer or audio volume control"
+  },
+  {
+    "q": "Which of the following is a step for troubleshooting a parallel circuit to find a short?",
+    "choices": [
+      "disconnect or isolate branches one at a time",
+      "increase supply voltage",
+      "replace all fuses simultaneously",
+      "measure only at the source"
+    ],
+    "answer": "disconnect or isolate branches one at a time"
+  },
+  {
+    "q": "What is the result when a branch of a parallel circuit has an open?",
+    "choices": [
+      "current stops in that branch only",
+      "the whole circuit stops",
+      "voltage at source goes to zero",
+      "all other branches short"
+    ],
+    "answer": "current stops in that branch only"
+  },
+  {
+    "q": "The best application of mutual inductance is found in a device called a ________.",
+    "choices": [
+      "transformer",
+      "resistor",
+      "capacitor",
+      "rectifier"
+    ],
+    "answer": "transformer"
+  },
+  {
+    "q": "Which of the following is a component of a transformer?",
+    "choices": [
+      "primary winding",
+      "commutator",
+      "rotor bars",
+      "brushes"
+    ],
+    "answer": "primary winding"
+  },
+  {
+    "q": "In an unwired state, which of the following is a method to troubleshoot a transformer?",
+    "choices": [
+      "use an ohmmeter to check winding continuity/resistance",
+      "apply full line voltage",
+      "strike it with a mallet",
+      "measure rotor current"
+    ],
+    "answer": "use an ohmmeter to check winding continuity/resistance"
+  },
+  {
+    "q": "The ________ is the stationary winding of the electric motor.",
+    "choices": [
+      "stator",
+      "rotor",
+      "commutator",
+      "armature (DC)"
+    ],
+    "answer": "stator"
+  },
+  {
+    "q": "The ________ provide a connection between the power source and the commutator on a DC motor.",
+    "choices": [
+      "brushes",
+      "field coils",
+      "slip rings only",
+      "bearings"
+    ],
+    "answer": "brushes"
+  },
+  {
+    "q": "The waveform produced by alternating current is commonly called a ________.",
+    "choices": [
+      "sine wave",
+      "square wave",
+      "triangle wave",
+      "sawtooth"
+    ],
+    "answer": "sine wave"
+  },
+  {
+    "q": "The rate at which electrical voltage or current cycle repeats is called ________.",
+    "choices": [
+      "frequency",
+      "amplitude",
+      "phase",
+      "impedance"
+    ],
+    "answer": "frequency"
+  },
+  {
+    "q": "The accepted industry standard for reversing a three‑phase motor is to ________.",
+    "choices": [
+      "swap any two of the supply lines",
+      "swap all three lines",
+      "add a resistor in series",
+      "reverse the transformer core"
+    ],
+    "answer": "swap any two of the supply lines"
+  },
+  {
+    "q": "Voltage across a 100 Ω resistor is 10 V. Using Ohm's law, current is ________.",
+    "choices": [
+      "0.1 A",
+      "1 A",
+      "10 A",
+      "0.01 A"
+    ],
+    "answer": "0.1 A"
+  },
+  {
+    "q": "You need to replace a 100 Ω resistor, but have one 25 Ω and two 200 Ω resistors. What can you do?",
+    "choices": [
+      "Put the two 200 Ω in parallel to make ~100 Ω",
+      "Put the 25 Ω in series with 75 Ω of thin wire",
+      "Use the 25 Ω by itself",
+      "Parallel the 25 Ω with a 200 Ω"
+    ],
+    "answer": "Put the two 200 Ω in parallel to make ~100 Ω"
+  },
+  {
+    "q": "There are two resistors in parallel: 50 Ω and 100 Ω. Is the voltage reading the same through both?",
+    "choices": [
+      "Yes, voltage is the same across parallel branches",
+      "No, voltage splits by resistance",
+      "Only at DC",
+      "Only if resistors are equal"
+    ],
+    "answer": "Yes, voltage is the same across parallel branches"
+  },
+  {
+    "q": "Given I = 20 A and R = 110 Ω, find V.",
+    "choices": [
+      "2200 V",
+      "110 V",
+      "20 V",
+      "5.5 V"
+    ],
+    "answer": "2200 V"
+  },
+  {
+    "q": "Given V = 120 V and R = 3000 Ω, find I.",
+    "choices": [
+      "0.04 A",
+      "0.4 A",
+      "4 A",
+      "0.004 A"
+    ],
+    "answer": "0.04 A"
+  },
+  {
+    "q": "Given V = 110 V and I = 5 A, find R.",
+    "choices": [
+      "22 Ω",
+      "55 Ω",
+      "15 Ω",
+      "105 Ω"
+    ],
+    "answer": "22 Ω"
+  },
+  {
+    "q": "In a DC circuit there are two resistors in series (12 Ω and 8 Ω) with 6 V supply. I = ________.",
+    "choices": [
+      "0.3 A",
+      "3 A",
+      "0.6 A",
+      "0.12 A"
+    ],
+    "answer": "0.3 A"
+  },
+  {
+    "q": "In a DC circuit there are two 100 Ω resistors in parallel. Supply 12 V. I = ________.",
+    "choices": [
+      "0.24 A",
+      "0.12 A",
+      "2.4 A",
+      "24 A"
+    ],
+    "answer": "0.24 A"
+  },
+  {
+    "q": "Two resistors in series: 20 Ω and 10 Ω; I = 0.1 A. Supply voltage = ________.",
+    "choices": [
+      "3 V",
+      "30 V",
+      "2 V",
+      "0.3 V"
+    ],
+    "answer": "3 V"
+  },
+  {
+    "q": "Three 300 Ω resistors in parallel, supply 12 V. I = ________.",
+    "choices": [
+      "0.12 A",
+      "0.04 A",
+      "0.36 A",
+      "0.3 A"
+    ],
+    "answer": "0.12 A"
+  },
+  {
+    "q": "Meter loading is ________.",
+    "choices": [
+      "the meter affecting the circuit due to its internal resistance",
+      "a meter's battery weight",
+      "loading a program into the meter",
+      "using the wrong test leads"
+    ],
+    "answer": "the meter affecting the circuit due to its internal resistance"
+  },
+  {
+    "q": "How could you use a DMM to determine current without breaking the circuit?",
+    "choices": [
+      "Use a clamp‑on ammeter attachment",
+      "Place leads across the supply",
+      "Measure resistance while powered",
+      "Use diode test mode"
+    ],
+    "answer": "Use a clamp‑on ammeter attachment"
+  },
+  {
+    "q": "When using a megohmmeter (megger) to check motor windings, it is ________ to disconnect the motor from the drive.",
+    "choices": [
+      "necessary",
+      "not necessary",
+      "recommended only for AC",
+      "never allowed"
+    ],
+    "answer": "necessary"
+  },
+  {
+    "q": "An advantage of a clamp‑on amp meter with an analog scale is ________.",
+    "choices": [
+      "it shows trends/fluctuations smoothly",
+      "it is always more accurate than digital",
+      "it works without a power source",
+      "it measures resistance directly in‑circuit"
+    ],
+    "answer": "it shows trends/fluctuations smoothly"
+  },
+  {
+    "q": "To test a relay coil out‑of‑circuit, you would measure ________.",
+    "choices": [
+      "its resistance with an ohmmeter",
+      "voltage across contacts",
+      "coil inductance with LCR at 1kHz only",
+      "contact continuity only"
+    ],
+    "answer": "its resistance with an ohmmeter"
+  },
+  {
+    "q": "One possible cause for an overload to trip constantly is ________.",
+    "choices": [
+      "wrong heater size or incorrect trip setting",
+      "using a DC motor",
+      "too many grounds",
+      "lack of neutral"
+    ],
+    "answer": "wrong heater size or incorrect trip setting"
+  },
+  {
+    "q": "Which of the following is a possible cause for a motor to overheat?",
+    "choices": [
+      "overload or low voltage or poor ventilation",
+      "excessive capacitance",
+      "having a large frame size",
+      "paint color"
+    ],
+    "answer": "overload or low voltage or poor ventilation"
+  },
+  {
+    "q": "In a ladder logic control circuit, the signal measured is usually ________.",
+    "choices": [
+      "voltage",
+      "current",
+      "resistance",
+      "power factor"
+    ],
+    "answer": "voltage"
+  },
+  {
+    "q": "If a relay coil is good, you should get ________ voltage reading across it when it is energized.",
+    "choices": [
+      "very low or near zero",
+      "full line",
+      "half line",
+      "random"
+    ],
+    "answer": "very low or near zero"
+  },
+  {
+    "q": "The common factor that most influences the selection of test equipment is ________.",
+    "choices": [
+      "the circuit's voltage/current range and type",
+      "brand",
+      "color",
+      "price alone"
+    ],
+    "answer": "the circuit's voltage/current range and type"
+  },
+  {
+    "q": "When a discrete input circuit is forced on ________.",
+    "choices": [
+      "it is energized for testing via jumper or software",
+      "the PLC halts",
+      "the output turns off",
+      "resistance goes to infinity"
+    ],
+    "answer": "it is energized for testing via jumper or software"
+  },
+  {
+    "q": "When checking a transformer, primary side resistance is 6 Ω and secondary is 12 Ω. Which side has more windings?",
+    "choices": [
+      "secondary has more windings",
+      "primary has more windings",
+      "they are equal",
+      "cannot be determined"
+    ],
+    "answer": "secondary has more windings"
+  },
+  {
+    "q": "In a transformer there is ________ direct electrical connection between the primary and secondary coils.",
+    "choices": [
+      "no",
+      "always a",
+      "sometimes a mandatory",
+      "a required"
+    ],
+    "answer": "no"
+  },
+  {
+    "q": "In a DC circuit, a capacitor once fully charged will act as a ________.",
+    "choices": [
+      "open",
+      "short",
+      "resistor",
+      "inductor"
+    ],
+    "answer": "open"
+  },
+  {
+    "q": "A shorted capacitor will probably read ________ ohms.",
+    "choices": [
+      "0",
+      "∞",
+      "50",
+      "500"
+    ],
+    "answer": "0"
+  },
+  {
+    "q": "If a wire reads 0 volts, is it possible for current to be traveling through the wire?",
+    "choices": [
+      "Yes, both ends can be at same potential in a live circuit",
+      "No, 0 volts means no current",
+      "Only with AC",
+      "Only with very short wires"
+    ],
+    "answer": "Yes, both ends can be at same potential in a live circuit"
+  },
+  {
+    "q": "(Q19) Will seven conductors of RHH AWG 6 fit in Tubing size 41 (1‑1/2″)?",
+    "choices": [
+      "Yes",
+      "No",
+      "Only if using 60% fill",
+      "Only with ENT"
+    ],
+    "answer": "Yes"
+  },
+  {
+    "q": "(Q20) Will nine conductors of RHH AWG 10 fit in Tubing size 35 (1‑1/4″)?",
+    "choices": [
+      "Yes",
+      "No",
+      "Only if using compact conductors",
+      "Only with aluminum"
+    ],
+    "answer": "Yes"
+  },
+  {
+    "q": "(Q21) Will four conductors of RHH AWG 12 fit in Tubing size 21 (3/4″)?",
+    "choices": [
+      "Yes",
+      "No",
+      "Only with THHN",
+      "Only with 90°C rating"
+    ],
+    "answer": "Yes"
+  },
+  {
+    "q": "(Q22) Total number of RHH AWG 6 that will fit in Tubing size 41 (1‑1/2″) at standard fill is:",
+    "choices": [
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "answer": "7"
+  },
+  {
+    "q": "(Q23) Approximate area of THREE conductors of RHH AWG 6 (in²):",
+    "choices": [
+      "0.312",
+      "0.131",
+      "0.104",
+      "0.729"
+    ],
+    "answer": "0.312"
+  },
+  {
+    "q": "(Q24) Approximate area of THREE conductors of RHH AWG 10 (in²):",
+    "choices": [
+      "0.131",
+      "0.104",
+      "0.216",
+      "0.393"
+    ],
+    "answer": "0.131"
+  },
+  {
+    "q": "(Q25) Approximate area of ONE conductor of RHH AWG 6 (in²):",
+    "choices": [
+      "0.104",
+      "0.035",
+      "0.044",
+      "0.083"
+    ],
+    "answer": "0.104"
+  }
+];
+
+let state = { };
+
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+function build(){
+  const container = document.getElementById('quiz');
+  container.innerHTML = '';
+  state.items = data.map((item, idx)=>{
+    const variant = Object.assign({},{...item});
+    variant.id = idx;
+    const choices = item.choices.map((c)=>({text:c, correct: c===item.answer}));
+    shuffle(choices);
+    variant.choices = choices;
+    return variant;
+  });
+
+  if (document.getElementById('shuffleQ').checked){ shuffle(state.items); }
+
+  state.items.forEach((item, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    const q = document.createElement('div');
+    q.className = 'qtext';
+    q.textContent = (idx+1)+'. '+item.q;
+    card.appendChild(q);
+    const groupName = 'q'+idx;
+    item.choices.forEach((ch, ci)=>{
+      const label = document.createElement('label');
+      label.className = 'choice';
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = groupName;
+      input.value = ci;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(ch.text));
+      if (document.getElementById('instant').checked){
+        input.addEventListener('change', ()=>{
+          [...card.querySelectorAll('.choice')].forEach(el=>el.classList.remove('correct','incorrect'));
+          if (ch.correct){ label.classList.add('correct'); }
+          else { label.classList.add('incorrect'); }
+        });
+      }
+      card.appendChild(label);
+    });
+    container.appendChild(card);
+  });
+
+  updateMeta();
+  document.getElementById('summary').textContent = 'Score: —';
+}
+
+function updateMeta(){
+  document.getElementById('meta').textContent = state.items.length + ' questions • answers randomized';
+}
+
+function grade(){
+  let correct = 0;
+  const cards = document.querySelectorAll('#quiz .card');
+  cards.forEach((card, qi)=>{
+    const radios = card.querySelectorAll('input[type=radio]');
+    let picked = -1;
+    radios.forEach((r,i)=>{ if(r.checked) picked = i; });
+    const isCorrect = picked>=0 && state.items[qi].choices[picked].correct;
+    const labels = card.querySelectorAll('.choice');
+    labels.forEach((lab, i)=>{
+      lab.classList.remove('correct','incorrect');
+      if (state.items[qi].choices[i].correct){ lab.classList.add('correct'); }
+      else if (i===picked){ lab.classList.add('incorrect'); }
+    });
+    if (isCorrect) correct += 1;
+  });
+  const total = state.items.length;
+  const pct = Math.round((correct/total)*100);
+  document.getElementById('summary').textContent = `Score: ${correct} / ${total} (${pct}%)`;
+}
+
+document.getElementById('submitBtn').addEventListener('click', grade);
+document.getElementById('retryBtn').addEventListener('click', build);
+document.getElementById('shuffleQ').addEventListener('change', build);
+document.getElementById('instant').addEventListener('change', build);
+
+build();
+</script>
+</body>
+</html>
